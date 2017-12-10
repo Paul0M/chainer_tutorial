@@ -19,11 +19,11 @@ def init_args():
     parser = argparse.ArgumentParser(description='Chainer CIFAR example:')
     parser.add_argument('--dataset', '-d', default='cifar10',
                         help='The dataset to use: cifar10 or cifar100')
-    parser.add_argument('--batchsize', '-b', type=int, default=64,
+    parser.add_argument('--batchsize', '-b', type=int, default=256,
                         help='Number of images in each mini-batch')
     parser.add_argument('--learnrate', '-l', type=float, default=0.05,
                         help='Learning rate for SGD')
-    parser.add_argument('--epoch', '-e', type=int, default=300,
+    parser.add_argument('--epoch', '-e', type=int, default=100,
                         help='Number of sweeps over the dataset to train')
     parser.add_argument('--gpu', '-g', type=int, default=0,
                         help='GPU ID (negative value indicates CPU)')
@@ -92,8 +92,10 @@ def main():
     updater = training.StandardUpdater(train_iter, optimizer, device=args.gpu)
     trainer = training.Trainer(updater, (args.epoch, 'epoch'), out=args.out)
 
+    # 6. Other option
+
     # Save snapshot every 10 epoch
-    trainer.extend(extensions.snapshot(), trigger=(10, 'epoch'))
+    trainer.extend(extensions.snapshot(), trigger=(50, 'epoch'))
 
     # Evaluate the model with the test dataset for each epoch
     trainer.extend(extensions.Evaluator(test_iter, model, device=args.gpu))
@@ -105,8 +107,6 @@ def main():
     trainer.extend(extensions.ProgressBar())
 
     trainer.extend(extensions.LogReport())
-    trainer.extend(extensions.snapshot(filename='snapshot_epoch-{.updater.epoch}'))
-    trainer.extend(extensions.snapshot_object(model.predictor, filename='model_epoch-{.updater.epoch}'))
     trainer.extend(extensions.PrintReport(['epoch', 'main/loss', 'main/accuracy', 'validation/main/loss', 'validation/main/accuracy', 'elapsed_time']))
     trainer.extend(extensions.PlotReport(['main/loss', 'validation/main/loss'], x_key='epoch', file_name='loss.png'))
     trainer.extend(extensions.PlotReport(['main/accuracy', 'validation/main/accuracy'], x_key='epoch', file_name='accuracy.png'))
